@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videollamada con PeerJS</title>
+</head>
+<body>
+    <h1>Mi Videollamada</h1>
+    
+    <!-- Botón para iniciar la videollamada -->
+    <button id="startCall">Iniciar Videollamada</button>
+
+    <!-- Contenedor para el video local -->
+    <video id="localVideo" autoplay muted style="width: 300px; height: 200px;"></video>
+
+    <!-- Contenedor para el video remoto -->
+    <video id="remoteVideo" autoplay style="width: 300px; height: 200px;"></video>
+
+    <!-- Incluir la biblioteca PeerJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js"></script>
+
+    <!-- Incluir tu script personalizado -->
+    <script>
+        // Conectar con el servidor PeerJS
+            const peer = new Peer();
+
+            // Manejar la apertura de la conexión
+            peer.on('open', (id) => {
+                console.log('ID del peer:', id);
+            });
+
+            // Manejar la recepción de una llamada
+            peer.on('call', (call) => {
+                // Contestar la llamada y agregar los streams de video
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then((stream) => {
+                        // Mostrar el video local
+                        const localVideo = document.getElementById('localVideo');
+                        localVideo.srcObject = stream;
+
+                        // Contestar la llamada y agregar el stream local
+                        call.answer(stream);
+
+                        // Manejar el stream remoto
+                        call.on('stream', (remoteStream) => {
+                            // Mostrar el video remoto
+                            const remoteVideo = document.getElementById('remoteVideo');
+                            remoteVideo.srcObject = remoteStream;
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error al obtener el stream de video:', error);
+                    });
+            });
+
+            // Manejar clic en el botón "Iniciar Videollamada"
+            document.getElementById('startCall').addEventListener('click', () => {
+                // Obtener el ID del compañero (puede ser ingresado manualmente o recibido de alguna manera)
+                const peerId = prompt('Ingrese el ID del compañero');
+
+                // Obtener el stream local
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then((stream) => {
+                        // Mostrar el video local
+                        const localVideo = document.getElementById('localVideo');
+                        localVideo.srcObject = stream;
+
+                        // Iniciar una llamada y agregar el stream local
+                        const call = peer.call(peerId, stream);
+
+                        // Manejar el stream remoto
+                        call.on('stream', (remoteStream) => {
+                            // Mostrar el video remoto
+                            const remoteVideo = document.getElementById('remoteVideo');
+                            remoteVideo.srcObject = remoteStream;
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error al obtener el stream de video:', error);
+                    });
+            });
+    </script>
+</body>
+</html>
